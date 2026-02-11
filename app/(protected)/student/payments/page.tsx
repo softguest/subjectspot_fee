@@ -1,84 +1,15 @@
-// "use client";
-
-// import { useEffect, useState } from "react";
-
-// export default function PaymentHistory() {
-//   const [payments, setPayments] = useState<any[]>([]);
-
-//   useEffect(() => {
-//     fetch("/api/payments/history")
-//       .then((res) => res.json())
-//       .then(setPayments);
-//   }, []);
-
-//   return (
-//     <div className="max-w-4xl mx-auto py-8">
-//       <h1 className="text-2xl font-semibold mb-6">Payment History</h1>
-
-//       <div className="overflow-x-auto">
-//         <table className="w-full border hidden md:table">
-//           <thead>
-//             <tr className="bg-gray-100">
-//               <th className="p-2 text-left">Date</th>
-//               <th className="text-left">Amount</th>
-//               <th className="text-left">Status</th>
-//               <th className="text-left">Transaction</th>
-//             </tr>
-//           </thead>
-//           <tbody>
-//             {payments.map((p) => (
-//               <tr key={p.id} className="border-t">
-//                 <td className="p-2">
-//                   {new Date(p.createdAt).toLocaleDateString()}
-//                 </td>
-//                 <td>{p.amount.toLocaleString()} XAF</td>
-//                 <td>{p.status}</td>
-//                 <td>{p.momoTransactionId || "-"}</td>
-//               </tr>
-//             ))}
-//           </tbody>
-//         </table>
-
-//         {/* Mobile card layout */}
-//         <div className="md:hidden space-y-4">
-//           {payments.map((p) => (
-//             <div
-//               key={p.id}
-//               className="border rounded-lg p-4 shadow-sm bg-white"
-//             >
-//               <div className="flex justify-between">
-//                 <span className="font-medium text-gray-600">Date:</span>
-//                 <span>{new Date(p.createdAt).toLocaleDateString()}</span>
-//               </div>
-//               <div className="flex justify-between">
-//                 <span className="font-medium text-gray-600">Amount:</span>
-//                 <span>{p.amount.toLocaleString()} XAF</span>
-//               </div>
-//               <div className="flex justify-between">
-//                 <span className="font-medium text-gray-600">Status:</span>
-//                 <span>{p.status}</span>
-//               </div>
-//               <div className="flex justify-between">
-//                 <span className="font-medium text-gray-600">Transaction:</span>
-//                 <span>{p.momoTransactionId || "-"}</span>
-//               </div>
-//             </div>
-//           ))}
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-
-
 "use client";
 
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
+import WaterLoader from "@/components/loaders/WaterLoader";
 import { FiClock } from "react-icons/fi";
 
 export default function PaymentHistory() {
   const [payments, setPayments] = useState<any[]>([]);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   useEffect(() => {
     fetch("/api/payments/history")
@@ -140,21 +71,97 @@ export default function PaymentHistory() {
                   </span>
                   {p.momoTransactionId || "-"}
                 </td>
-                <td className="p-2 block md:table-cell">
+                <td className="p-2 block md:table-cell space-x-2">
                   <Button
+                    className="cursor-pointer"
                     variant="outline"
                     onClick={() =>
                       window.open(`/api/receipts/${p.id}`, "_blank")
                     }
                   >
-                    Download Receipt
+                    Download
                   </Button>
+                  {/* <a
+                    href={`/api/receipts/${p.id}?preview=true`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn"
+                  >
+                    Preview
+                  </a> */}
+                   <Button
+                      variant="secondary"
+                      onClick={() => {
+                        setSelectedId(p.id);
+                        setPreviewLoading(true);
+                        setPreviewOpen(true);
+                      }}
+                    >
+                      Preview
+                    </Button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      {previewOpen && selectedId && (
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+          <div className="bg-white p-4 rounded-xl w-[95%] max-w-5xl relative">
+
+            <button
+              onClick={() => setPreviewOpen(false)}
+              className="absolute right-0 top-3 text-2xl"
+            >
+              ✕
+            </button>
+            {previewLoading && (
+              // <WaterLoader label="Loading..." />
+              <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10 rounded-xl">
+                <div className="flex flex-col items-center gap-2">
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+                  <p className="text-sm text-gray-600">Loading receipt...</p>
+                </div>
+              </div>
+            )}
+            <iframe
+              src={`/api/receipts/${selectedId}?preview=true`}
+              onLoad={() => setPreviewLoading(false)}
+              className="w-full h-[80vh] rounded border"
+            />
+            <div className="border-t pt-4 mt-4">
+              <div className="flex justify-end gap-2 mt-4">
+                  {/* <Button
+                    onClick={() => setPreviewOpen(false)}
+                    className="absolute right-0 top-3 text-xl"
+                  >
+                    close
+                  </Button> */}
+                <Button
+                  className="cursor-pointer"
+                  variant="outline"
+                  onClick={() =>
+                    window.open(`/api/receipts/${selectedId}`, "_blank")
+                  }
+                >
+                  Download
+                </Button>
+                <Button
+                className="cursor-pointer"
+                  onClick={() =>
+                    document
+                      .querySelector("iframe")
+                      ?.contentWindow?.print()
+                  }
+                >
+                  Print
+                </Button>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+      )}
     </div>
   );
 }
