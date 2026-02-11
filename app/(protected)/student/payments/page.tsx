@@ -144,21 +144,11 @@ export default function PaymentHistory() {
                   <Button
                     variant="outline"
                     onClick={() =>
-                      window.open(`/api/receipts/${p.id}/pdf`, "_blank")
+                      window.open(`/api/receipts/${p.id}`, "_blank")
                     }
                   >
                     Download Receipt
                   </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() =>
-                      window.open(`/api/receipts/${p.id}`, "_blank")
-                    }
-                  >
-                    Download Receipt x
-                  </Button>
-
-
                 </td>
               </tr>
             ))}
