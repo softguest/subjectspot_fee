@@ -1,0 +1,218 @@
+import {
+  pgTable,
+  text,
+  varchar,
+  uuid,
+  timestamp,
+  boolean,
+  integer,
+  pgEnum,
+  unique
+} from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
+
+export const userRoleEnum = pgEnum("user_role", [
+  "admin",
+  "student",
+  "parent",
+]);
+
+export const paymentTypeEnum = pgEnum("payment_type_enum", [
+  "FULL",
+  "INSTALLMENT",
+]);
+
+// ================= USERS =================
+export const users = pgTable("users", {
+  id: text("id").primaryKey(),
+  clerkId: text("clerk_id").notNull().unique(),
+  role: userRoleEnum("role").default("student").notNull(),
+  userName: varchar({ length: 256 }),
+  email: varchar("email", { length: 255 }).unique(),
+  phone: text("phone"),
+  createdAt: timestamp("created_at").defaultNow(),
+  deletedAt: timestamp("deleted_at"), // soft delete
+});
+
+// ================= CLASSES =================
+export const classes = pgTable("classes", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull().unique(), // e.g. "Form 3A"
+  description: text("description"),
+  academicYear: text("academic_year").notNull(),
+  createdBy: text("created_by")
+    .notNull()
+    .references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  deletedAt: timestamp("deleted_at"), // soft delete
+});
+
+// ================= STUDENTS =================
+export const students = pgTable("students", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id),
+  studentCode: varchar("student_code", { length: 32 }).notNull().unique(),
+  firstName: varchar("first_name", { length: 50 }),
+  middleName: varchar("middle_name", { length: 50 }),
+  lastName: varchar("last_name", { length: 50 }),
+  age: integer("total_amount"),
+  gender: varchar("gender", { length: 50 }),
+  classId: uuid("class_id").notNull().references(() => classes.id),
+  createdByUserId: text("created_by_user_id")
+  .notNull()
+  .references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  deletedAt: timestamp("deleted_at"), // soft delete
+});
+
+// ###### this sis the step where we take the code to the next level 
+
+// ================= PARENTS-STUDENTS =================
+export const parentsStudents = pgTable("parents_students", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  parentUserId: text("parent_user_id").notNull().references(() => users.id),
+  studentId: uuid("student_id").notNull().references(() => students.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  deletedAt: timestamp("deleted_at"), // soft delete
+});
+
+// ================= CLASS FEES =================
+export const classFees = pgTable("class_fees", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  classId: uuid("class_id").notNull().references(() => classes.id, { onDelete: "cascade" }),
+  name: text("name").notNull(), // Tuition, Exam fee
+  academicYear: text("academic_year").notNull(), // 2024/2025
+  description: text("description"),
+  term: text("term").notNull(), // Term 1
+  totalAmount: integer("total_amount").notNull(),
+  paymentType: paymentTypeEnum("payment_type").notNull(), // FULL | INSTALLMENT
+  createdByAdminId: text("created_by_admin_id").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  deletedAt: timestamp("deleted_at"),
+});
+
+// ================= FEE INSTALLMENTS =================
+export const classFeeInstallments = pgTable("class_fee_installments", {
+  id: uuid("id").defaultRandom().primaryKey(),
+
+  classFeeId: uuid("class_fee_id")
+    .notNull()
+    .references(() => classFees.id),
+
+  name: text("name").notNull(),
+  amount: integer("amount").notNull(),
+
+  amountPaid: integer("amount_paid").default(0),
+
+  status: text("status")
+    .$type<"PAID" | "PARTIAL" | "UNPAID" | "OVERDUE">()
+    .default("UNPAID"),
+
+  dueDate: timestamp("due_date"),
+  paidAt: timestamp("paid_at"),
+
+  createdAt: timestamp("created_at").defaultNow(),
+  deletedAt: timestamp("deleted_at"),
+});
+
+
+// ================= STUDENT-SPECIFIC FEES =================
+export const studentFees = pgTable("student_fees", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  studentId: uuid("student_id").notNull().references(() => students.id),
+  classFeeId: uuid("class_fee_id").notNull().references(() => classFees.id),
+  amount: integer("amount").notNull(), // custom amount for student
+  discount: integer("discount"), // optional discount
+  isExempted: boolean("is_exempted").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  deletedAt: timestamp("deleted_at"), // soft delete
+});
+
+// ================= PAYMENTS =================
+export const payments = pgTable("payments", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  studentId: uuid("student_id").notNull().references(() => students.id),
+  classFeeId: uuid("class_fee_id").notNull().references(() => classFees.id),
+  installmentId: uuid("installment_id"), // nullable for full payment
+  amount: integer("amount").notNull(),
+  method: text("method"), // payment method
+  reference: text("reference"),
+  status: text("status").notNull(), // pending | success | failed
+  momoTransactionId: text("momo_transaction_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  deletedAt: timestamp("deleted_at"), // soft delete
+});
+
+// ================= STUDENT NOTES =================
+export const studentNotes = pgTable("student_notes", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  studentId: uuid("student_id").notNull().references(() => students.id),
+  authorUserId: text("author_user_id").notNull().references(() => users.id),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  deletedAt: timestamp("deleted_at"), // soft delete
+});
+
+// ================= STUDENT CLASS HISTORY =================
+export const studentClassHistory = pgTable("student_class_history", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  studentId: uuid("student_id").notNull().references(() => students.id),
+  classId: uuid("class_id").notNull().references(() => classes.id),
+  startDate: timestamp("start_date").defaultNow(),
+  endDate: timestamp("end_date"),
+  deletedAt: timestamp("deleted_at"), // soft delete
+});
+
+export const studentInstallmentPayments = pgTable(
+  "student_installment_payments",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+
+    studentId: uuid("student_id")
+      .notNull()
+      .references(() => students.id),
+
+    installmentId: uuid("installment_id")
+      .notNull()
+      .references(() => classFeeInstallments.id),
+    amountDue: integer("amount_due").notNull(),
+
+    amountPaid: integer("amount_paid").default(0),
+    paidAt: timestamp("paid_at"),
+    status: text("status").$type<"PAID" | "PARTIAL" | "UNPAID">().default("UNPAID"),
+
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (t) => ({
+    unique: unique().on(t.installmentId, t.studentId),
+  })
+);
+
+
+// Relationships ####
+export const studentsRelations = relations(students, ({ one }) => ({
+  class: one(classes, {
+    fields: [students.classId],
+    references: [classes.id],
+  }),
+}));
+
+export const classesRelations = relations(classes, ({ many }) => ({
+  fees: many(classFees),
+}));
+
+export const classFeesRelations = relations(classFees, ({ one, many }) => ({
+  installments: many(classFeeInstallments),
+  class: one(classes, {
+    fields: [classFees.classId],
+    references: [classes.id],
+  }),
+}));
+
+export const classFeeInstallmentsRelations = relations(classFeeInstallments, ({ one }) => ({
+  classFee: one(classFees, {
+    fields: [classFeeInstallments.classFeeId],
+    references: [classFees.id],
+  }),
+}));
