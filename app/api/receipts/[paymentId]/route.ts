@@ -1,4 +1,7 @@
-import puppeteer from "puppeteer";
+export const runtime = "nodejs";
+
+import puppeteer from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
 import { NextResponse } from "next/server";
 import { receiptHTML } from "@/lib/receipt-template";
 
@@ -57,9 +60,14 @@ export async function GET(
   });
 
   /* ---------------- CREATE PDF ---------------- */
+  // const browser = await puppeteer.launch({
+  //   headless: true,
+  //   args: ["--no-sandbox", "--disable-setuid-sandbox"], // ✅ important for Vercel
+  // });
   const browser = await puppeteer.launch({
+    args: chromium.args,
+    executablePath: await chromium.executablePath(),
     headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"], // ✅ important for Vercel
   });
 
   const page = await browser.newPage();
