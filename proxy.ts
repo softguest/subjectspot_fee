@@ -8,6 +8,11 @@ const isPublicRoute = createRouteMatcher([
   "/",
   "/sign-in(.*)",
   "/sign-up(.*)",
+  "/services(.*)",
+  "/work(.*)",
+  "/insights(.*)",
+  "/company(.*)",
+  "/contact(.*)",
 ]);
 
 const isStudentRoute = createRouteMatcher([

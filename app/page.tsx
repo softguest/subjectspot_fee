@@ -21,7 +21,6 @@ export default function HomePage() {
       <Impact />
       <Beneficiaries />
       <Implementation />
-      {/* <Sustainability /> */}
       <FundingCTA />
       <Footer />
     </main>

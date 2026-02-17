@@ -38,7 +38,7 @@ export default function PaymentHistory() {
               <th className="text-left">Amount</th>
               <th className="text-left">Status</th>
               <th className="text-left">Transaction</th>
-              <th className="text-left">Actions</th>
+              <th className="text-left">Receipt</th>
             </tr>
           </thead>
           <tbody>
