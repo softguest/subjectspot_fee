@@ -70,7 +70,7 @@ export default function Solution() {
                   drop-shadow-[0_0_14px_rgba(59,130,246,0.5)]
                 "
               >
-                A Simple, Secure Digital Solution
+                Trusted Digital & Tech Partner
               </h2>
 
               <p
@@ -82,8 +82,10 @@ export default function Solution() {
                   text-gray-700
                 "
               >
-                Our School Fee Payment Platform modernizes how schools collect,
-                track, and manage fees — removing cash, delays, and uncertainty.
+                We’re a full-stack technology partner helping startups, businesses, 
+                and organizations turn ideas into powerful digital products and automated systems. 
+                Whether you need software, infrastructure, marketing visibility, or creative media, 
+                we deliver solutions that drive measurable results.
               </p>
 
               <ul className="space-y-4">

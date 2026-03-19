@@ -133,11 +133,11 @@ export default function Hero() {
               leading-tight
               drop-shadow-[0_0_12px_rgba(52,211,153,0.8)]
             ">
-              Digitizing School Fee Payments
+              Build Smarter. 
               <br className="hidden sm:block" />
-              for a More Transparent
+              Scale Faster. 
               <br className="hidden sm:block" />
-              Education System.
+              Automate Everything.
             </h1>
 
             {/* Description */}
@@ -146,9 +146,8 @@ export default function Hero() {
               text-[clamp(1rem,2.5vw,1.125rem)]
               text-white/90
             ">
-              Helping schools, parents, and students in Cameroon save time, reduce
-              stress, and manage school fees efficiently through secure digital
-              payments.
+              We design powerful digital solutions, from websites and mobile apps to AI automation and 2d/3d animation, 
+              that help businesses grow, operate efficiently, and dominate their industry.
             </p>
 
             {/* CTA Buttons */}
